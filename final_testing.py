@@ -32,8 +32,9 @@ def getFeatures(imgpath):
     # print ('\n' + imgpath)
     main = Image(np.loadtxt(imgpath), imgpath)
     main.denoise()
-    main.findMajorAxis()
+    #main.findMajorAxis()
     main.search()  # bounding box
+    main.createLines()
     main.setCounts()
     main.getSymmetry()
     main.getCorners()
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     #print len(vectors)
     # tree = spatial.KDTree(vectors)
     tree = KDTree(db_vectors)
-    for v in range(len(query_vectors) - 1):
+    for v in range(len(query_vectors)):
         print 'Query Image: {}'.format(imgPaths[v])
         print 'Query vector: {} \n'.format(query_vectors[v])
         distance, ind = tree.query(query_vectors[v], int(k))    

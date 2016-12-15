@@ -15,20 +15,23 @@ class Image(object):
         self.data = data # original data matrix
         self.width = len(data[0])
         self.height = len(data)
-        self.bounded = None  # matrix after bounding box complete
-        self.rotated = None
         self.inverted = None  # set from denoise function
         self.foregroundPixels = None # foreground is the MAIN color of the image's central data
         self.backgroundPixels = None
         self.horizSym = None
         self.vertSym = None
         self.corners = None
+
+        self.longestLine = None
+        self.secondHighest = None
+
         self.circles = None
+
         # self.isPolygon = self.getType()  # TODO set from corners method
 
     def makeFeatureVector(self):
         # make feature vector for KNN
-        return (self.corners, self.horizSym, self.vertSym, (1.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels))
+        return (self.corners**2, self.horizSym, self.vertSym, (10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels), (10.0 * self.height)/self.width, self.longestLine)
 
 
     def checkHoriz(self, h, w):
@@ -78,25 +81,45 @@ class Image(object):
         """
         X, Y = self.height, self.width
         thisSum = 0
+        highestLine = 0
+        secondHighest = 0
         endCoord = (0,0)
         sum = 0
+        thisLine = 0
     
         for i in range(10):
             top = random.randint(3, Y)
             right = random.randint(3, X)
             
             for i in range(0, 3):
-                thisSum, endCoord= self.calcDiagonal(0, top, 1, 1 - i)
+                thisSum, endCoord, thisLine= self.calcDiagonal(0, top, 1, 1 - i)
                 if thisSum > sum:
                     sum = thisSum
                     coord = [(0, top), endCoord]
+                if thisLine > secondHighest:
+                    if thisLine > highestLine:
+                        secondHighest = highestLine
+                        highestLine = thisLine
+                        coord = [(0, top), endCoord]
+                    else:
+                        secondHighest = thisLine
+                    
             for j in range(0, 3):
-                thisSum, endCoord= self.calcDiagonal(right, 0, 1 - j, 1)
+                thisSum, endCoord, thisLine= self.calcDiagonal(right, 0, 1 - j, 1)
                 if thisSum > sum:
                     sum = thisSum
                     coord = [(right, 0), endCoord]
+                if thisLine > secondHighest:
+                    if thisLine > highestLine:
+                        secondHighest = highestLine
+                        highestLine = thisLine
+                        coord = [(right, 0), endCoord]
+                    else:
+                        secondHighest = thisLine
         
-        self.degrees(coord)
+        self.longestLine = highestLine
+        self.secondHighest = secondHighest
+        #self.degrees(coord)
         #print sum, coord
 
 
@@ -112,7 +135,9 @@ class Image(object):
         """
             Calculates how many pixels are actually in the shape down this particular line
         """
-   
+        contin = 0
+        continLine = 0
+        
         X, Y = self.height, self.width
 
         x, y = startX, startY
@@ -126,11 +151,16 @@ class Image(object):
         while  -1 < x < X and -1 < y < Y:
             if pixel == self.data[x][y]:
                 thisSum += 1
+                contin +=1
+            elif contin > 0:
+                continLine = thisSum
+                contin = -1000
+                
             
             x +=xStep
             y +=yStep
         
-        return thisSum, (x-1, y-1)
+        return thisSum, (x-1, y-1), continLine
         
     
     def degrees(self, coord):
@@ -140,20 +170,19 @@ class Image(object):
         degs = 0
         
         if coord[1][0] - coord[0][0] ==0:
-            degs = 90
+            self.data = np.rot90(self.data)
         else:
             m = (-1.0) * (coord[1][1] - coord[0][1]) / (coord[1][0] - coord[0][0])
             degs = math.degrees(math.atan(m))
-        
-        self.rotate(degs)            
+            print "rot"
+            self.rotate(degs)            
 
     def rotate(self, degrees):
         """
             Rotates the shape degrees and saves as new shape
         """
         newData = ndimage.interpolation.rotate(self.data, degrees, axes= (0, 1), reshape = True, order = 0)
-        #Don't save this actually 
-        self.rotated = newData
+        #Don't save this actually
         self.data = newData
         self.width = len(newData[0])
         self.height = len(newData)
@@ -170,11 +199,11 @@ class Image(object):
 
     def xSym(self):
 
-        data = self.bounded
+        data = self.data
         # h = self.height
-        h = len(data)
+        h = self.height
         # w = self.width
-        w = len(data[0])
+        w = self.width
 
         compare = 0
         if h%2 == 1:
@@ -191,15 +220,15 @@ class Image(object):
                     # pdb.set_trace()
                     if data[r1 + row][i] == data[r2 - row][i]:
                         compare +=1
-        return (2.0* compare) / (h*w)
+        return (20.0* compare) / (h*w)
 
 
     def ySym(self):
-        data = self.bounded
+        data = self.data
         # h = self.height
-        h = len(data)
+        h = self.height
         # w = self.width
-        w = len(data[0])
+        w = self.width
         compare = 0
         if w % 2 == 1:
             col = w/2
@@ -214,7 +243,7 @@ class Image(object):
                 for c in range(0, w/2):
                     if data[m][c1 + c] == data[m][c2 -c]:
                         compare +=1
-        return (2.0* compare) / (h*w)
+        return (20.0* compare) / (h*w)
 
 
     def combineList(self, lst):
@@ -246,7 +275,7 @@ class Image(object):
 
 
     def getCorners(self):
-    	self.findCorners(self.data, 4, 0.05, 1)
+    	self.findCorners(self.data, 4, 0.05, 0.5)
     
     def findCorners(self, arry, window_size, k, thresh):
         height = len(arry)
@@ -300,7 +329,8 @@ class Image(object):
         version can either be 'full' or 'bounded'
         """
         file = open(path + '/' + filename + '.txt', "w")
-        data = self.data if version == 'full' else self.bounded
+        #data = self.data if version == 'full' else self.bounded
+        data = self.data
         for row in data:
             file.write("\n")
             for item in row:
@@ -326,7 +356,8 @@ class Image(object):
 
     def setCounts(self):
         # if inverted = False, background is 0
-        d = self.bounded if self.bounded is not None else self.data
+        #d = self.bounded if self.bounded is not None else self.data
+        d = self.data
         ones, zeros = self.countNaive(d)
         if self.inverted:
             self.backgroundPixels, self.foregroundPixels = ones, zeros
@@ -447,10 +478,11 @@ class Image(object):
         # pdb.set_trace()
         # return new_image
         # pdb.set_trace()
-        self.bounded = self.data[row_idx[:, None], col_idx]
+        #self.bounded = self.data[row_idx[:, None], col_idx]
+        self.data = self.data[row_idx[:, None], col_idx]
         # temp = "output/out_" + self.name[-8:]
         #np.savetxt(temp, self.bounded, fmt='%d')
-        self.data = self.bounded
+        #self.data = self.bounded
         self.height = len(self.data)
         self.width  = len(self.data[0])
         """
