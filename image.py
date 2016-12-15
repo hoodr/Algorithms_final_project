@@ -21,13 +21,59 @@ class Image(object):
         self.horizSym = None
         self.vertSym = None
         self.corners = None
+
         self.longestLine = None
         self.secondHighest = None
+
+        self.circles = None
+
         # self.isPolygon = self.getType()  # TODO set from corners method
 
     def makeFeatureVector(self):
         # make feature vector for KNN
         return (self.corners**2, self.horizSym, self.vertSym, (10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels), (10.0 * self.height)/self.width, self.longestLine)
+
+
+    def checkHoriz(self, h, w):
+        pixel = self.bounded[h][w]
+        row = self.bounded[h]
+        pos = w
+        pre = row[:pos]
+        post = row[pos:]
+        check = 1 - pixel
+        if check in pre and check in post:
+            return True
+        return False
+
+
+    def checkVert(self, h, w, height):
+        pixel = self.bounded[h][w]
+        col = [self.bounded[i][w] for i in range(height)]
+        pos = h
+        pre = col[:pos]
+        post = col[pos:]
+        check = 1 - pixel
+        if check in pre and check in post:
+            return True
+        return False
+
+
+    def getCircledPixels(self):
+        count = 0
+        height = len(self.bounded)
+        width = len(self.bounded[0])
+        for row in range(height):
+            for col in range(width):
+                pixel = self.bounded[row][col]
+                if self.checkHoriz(row, col):
+                    if self.checkVert(row, col, height):
+                        count += 1
+                    else:
+                        continue
+                else:
+                    continue
+        self.circles = count ** 2
+
 
     def createLines(self):
         """
