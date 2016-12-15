@@ -8,6 +8,7 @@ import sys, os
 from kd_tree import KDTree
 import pdb
 import time
+from lshash import LSHash
 
 # 1) denoise
 # 2) pixel counts
@@ -39,7 +40,7 @@ def getFeatures(imgpath):
     main.createLines()
     main.setCounts()
     main.getSymmetry()
-    #main.getCorners()
+    main.getCorners()
     main.getCircledPixels()
     f = main.makeFeatureVector()
     #paths.append(paths)
@@ -78,43 +79,56 @@ if __name__ == '__main__':
 
     database_map = {}
     f = []
+        
+    lsh = LSHash(6, 4)
+
     # database calculations...
     for img in os.listdir(db):
         imgpath = db + '/' + img
         f = getFeatures(imgpath)
-        database_map[imgpath] = f
+        #database_map[f] = imgpath
+        lsh.index(f)
         imgPath_db.append(imgpath)
         db_vectors.append(f)
         # print len(f)
 
-
+    q_feat = []
     query_map = {}
-    q = []
     for img in os.listdir(query):
-        imgpath = query + '/' + img
+        #imgpath = query + '/' + img
+        imgpath = "/Users/daniellenash/Downloads/test2/query/662631"
+        print imgpath
         q = getFeatures(imgpath)
-        database_map[imgpath] = q
-        imgPaths_qu.append(imgpath)
-        query_vectors.append(q)
+        #query_map[q] = imgpath
+        answer = lsh.query(q, 5)
+        break
+        #imgPaths_qu.append(imgpath)
+        #query_vectors.append(q)
         #for i in range(len(q)):
             #vectors.append(q[i])
         # print len(q)
         #vectors.append(q)
 
+    #ans =  database_map[answer]
+    a = answer[0][0]
+    
+    for i in range(5):
+        pos = db_vectors.index(list(answer[i][0]))
+        print pos
+        print imgPath_db[pos]
     # cluster DB images once, find nearest neighbor foreach in query..
     
-    #data = zip(new)
-    #print len(data)
-    #print len(vectors)
-    # tree = spatial.KDTree(vectors)
-    tree = KDTree(db_vectors)
-    for v in range(len(query_vectors)):
-        print 'Query Image: {}'.format(imgPaths_qu[v])
-        print 'Query vector: {} \n'.format(query_vectors[v])
-        distance, ind = tree.query(query_vectors[v], int(k))    
-        for i in ind:
-            print 'Neighbor: {}'.format(imgPath_db[i])
-            print 'Neighbor vector: {}'.format(db_vectors[i])
-        print distance, ind
-        print '\n'
+    
+
+
+#     tree = KDTree(db_vectors)
+#     for v in range(len(query_vectors)):
+#         print 'Query Image: {}'.format(imgPaths_qu[v])
+#         print 'Query vector: {} \n'.format(query_vectors[v])
+#         distance, ind = tree.query(query_vectors[v], int(k))    
+#         for i in ind:
+#             print 'Neighbor: {}'.format(imgPath_db[i])
+#             print 'Neighbor vector: {}'.format(db_vectors[i])
+#         print distance, ind
+#         print '\n'
     print time.clock() - t0
