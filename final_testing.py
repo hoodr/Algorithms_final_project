@@ -96,10 +96,11 @@ if __name__ == '__main__':
     query_map = {}
     for img in os.listdir(query):
         #imgpath = query + '/' + img
-        imgpath = "/Users/daniellenash/Downloads/test2/query/662631"
+        imgpath = "/Users/daniellenash/Downloads/test2/query/26182612"
         print imgpath
         q = getFeatures(imgpath)
         #query_map[q] = imgpath
+        print "\nQUERYING\n"
         answer = lsh.query(q, 5)
         break
         #imgPaths_qu.append(imgpath)

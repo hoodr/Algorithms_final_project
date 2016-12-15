@@ -35,7 +35,8 @@ class Image(object):
 
     def makeFeatureVector(self):
         # make feature vector for KNN
-        return [self.horizSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles, self.corners ** 2]
+        return [self.horizSym ** 2, self.vertSym ** 2, self.foregroundPixels ** 2, self.circles]
+        #return [self.horizSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles, self.corners ** 2]
         #return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width))
 
     def moments(self):
@@ -222,11 +223,11 @@ class Image(object):
         hSymmetry = self.xSym()
         vSymmetry = self.ySym()
         
-        self.horizSym = hSymmetry/ (self.width * 0.5 * self.height)
-        self.vertSym =vSymmetry / (self.width * 0.5 * self.height)
+        self.horizSym = int( 1000 * (hSymmetry/ (self.width * 0.5 * self.height)))
+        self.vertSym = int(1000 * (vSymmetry / (self.width * 0.5 * self.height)))
 
     def xSym(self):
-
+        check = 0 if self.inverted else 1
         data = self.data
         # h = self.height
         h = self.height
@@ -239,7 +240,7 @@ class Image(object):
             row = h/2
             for r in range(1, h/2):
                 for i in range(w):
-                    if data[row + r][i] == data[row -r][i] and data[row + r][i]==1:
+                    if data[row + r][i] == data[row -r][i] and data[row + r][i] == check:
                         compare +=1
         else:
             r1 = h/2
@@ -247,12 +248,13 @@ class Image(object):
             for row in range(0, h/2):
                 for i in range(w):
                     # pdb.set_trace()
-                    if data[r1 + row][i] == data[r2 - row][i] and data[r2 - row][i]==1:
+                    if data[r1 + row][i] == data[r2 - row][i] and data[r2 - row][i]==check:
                         compare +=1
         return compare
 
 
     def ySym(self):
+        check = 0 if self.inverted else 1
         data = self.data
         # h = self.height
         h = self.height
