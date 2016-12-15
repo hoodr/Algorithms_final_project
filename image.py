@@ -35,7 +35,8 @@ class Image(object):
 
     def makeFeatureVector(self):
         # make feature vector for KNN
-        return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width), self.longestLine)
+        return (self.horizSym, self.vertSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles)
+        #return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width))
 
     def moments(self):
         c0, c1 = np.mgrid[:self.data.shape[0], :self.data.shape[1]]  # A trick in numPy to create a mesh grid
@@ -55,7 +56,10 @@ class Image(object):
         affine = np.array([[1, 0], [alpha, 1]])
         ocenter = np.array(self.data.shape) / 2.0
         offset = c - np.dot(affine, ocenter)
-        self.data = interpolation.affine_transform(self.data, affine, offset=offset)
+        self.data = (interpolation.affine_transform(self.data, affine, offset=offset)).astype(int)
+        #print np.shape(self.data)
+        self.width = len(self.data[0])
+        self.height = len(self.data)
 
 
     def checkHoriz(self, h, w):
@@ -218,8 +222,8 @@ class Image(object):
         hSymmetry = self.xSym()
         vSymmetry = self.ySym()
         
-        self.horizSym = hSymmetry
-        self.vertSym =vSymmetry 
+        self.horizSym = hSymmetry/ (self.width * 0.5 * self.height)
+        self.vertSym =vSymmetry / (self.width * 0.5 * self.height)
 
     def xSym(self):
 
@@ -228,13 +232,14 @@ class Image(object):
         h = self.height
         # w = self.width
         w = self.width
+        
 
         compare = 0
         if h%2 == 1:
             row = h/2
             for r in range(1, h/2):
                 for i in range(w):
-                    if data[row + r][i] == data[row -r][i]:
+                    if data[row + r][i] == data[row -r][i] and data[row + r][i]==1:
                         compare +=1
         else:
             r1 = h/2
@@ -242,9 +247,9 @@ class Image(object):
             for row in range(0, h/2):
                 for i in range(w):
                     # pdb.set_trace()
-                    if data[r1 + row][i] == data[r2 - row][i]:
+                    if data[r1 + row][i] == data[r2 - row][i] and data[r2 - row][i]==1:
                         compare +=1
-        return (20.0* compare) / (h*w)
+        return compare
 
 
     def ySym(self):
@@ -258,16 +263,16 @@ class Image(object):
             col = w/2
             for R in range(h):
                 for c in range(1, w/2):
-                    if data[R][col + c] == data[R][col -c]:
+                    if data[R][col + c] == data[R][col -c] and data[R][col -c]==1:
                         compare +=1
         else:
             c1 = w/2
             c2 = c1 - 1
             for m in range(h):
                 for c in range(0, w/2):
-                    if data[m][c1 + c] == data[m][c2 -c]:
+                    if data[m][c1 + c] == data[m][c2 -c] and data[m][c2 -c] == 1:
                         compare +=1
-        return (20.0* compare) / (h*w)
+        return compare
 
 
     def combineList(self, lst):
@@ -388,7 +393,7 @@ class Image(object):
         else:
             self.backgroundPixels, self.foregroundPixels = zeros, ones
 
-        self.foregroundPixels = self.foregroundPixels**2
+        #self.foregroundPixels = self.foregroundPixels**2
 
     def encodeValues(self, vals):
         """"
