@@ -2,7 +2,7 @@ from image import Image
 import numpy as np
 
 path = '/Users/daniellenash/Downloads/database/28454530'
-name = '7794940'
+name = '28454530'
 
 img = Image(np.loadtxt(path), name)
 img.denoise()
@@ -12,7 +12,9 @@ img.setCounts()
 img.getSymmetry()
 img.getCircledPixels()
 
+print "name ", name
 print "foreground px ", img.foregroundPixels
+print "ratio px ", img.ratioPixels
 print "horiz sym ", img.horizSym
 print "vert sym ", img.vertSym
 print "circled points ", img.circles

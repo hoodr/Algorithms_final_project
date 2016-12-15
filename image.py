@@ -8,7 +8,13 @@ from scipy import ndimage
 import random
 import pdb
 import math
+import fast12
 from scipy.ndimage import interpolation
+from scipy.ndimage.interpolation import map_coordinates
+from sklearn.decomposition import PCA as sklearnPCA
+from sklearn.preprocessing import StandardScaler
+
+
 
 class Image(object):
     def __init__(self, data, name): # data is an np.array
@@ -19,12 +25,14 @@ class Image(object):
         self.inverted = None  # set from denoise function
         self.foregroundPixels = None # foreground is the MAIN color of the image's central data
         self.backgroundPixels = None
+        self.ratioPixels = None
         self.horizSym = None
         self.vertSym = None
-        self.corners = None
+        self.numCorners = None
         self.longestLine = None
         self.secondHighest = None
-
+        self.pca1 = None
+        self.pca2 = None
         self.circles = None
         self.longestLine = None
         self.secondHighest = None
@@ -34,10 +42,22 @@ class Image(object):
         # self.isPolygon = self.getType()  # TODO set from corners method
 
     def makeFeatureVector(self):
-        # make feature vector for KNN
-        return [self.horizSym ** 2, self.vertSym ** 2, self.foregroundPixels ** 2, self.circles]
+        # make feature vector for KNN   #, self.ratioPixels   self.horizSym ** 2, self.vertSym ** 2,
+        # GOOD: return [self.numCorners,  self.foregroundPixels , self.horizSym, self.vertSym, self.pca1]
+        return [self.numCorners,  self.ratioPixels , self.horizSym, self.vertSym, self.pca1, self.pca2]
+        
+        #return [self.numCorners ** 2, self.horizSym ** 2, self.vertSym ** 2, self.foregroundPixels ** 2, self.circles ** 2, self.pca1, self.pca2]
         #return [self.horizSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles, self.corners ** 2]
         #return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width))
+
+
+    def getPCA(self):
+        X_std = StandardScaler().fit_transform(self.data)
+        cov_mat = np.cov(X_std.T)
+        eig_vals, eig_vecs = np.linalg.eig(cov_mat)
+
+        self.pca1 = int(100 * eig_vals[0].real)
+        self.pca2 = int(100 * eig_vals[1].real)
 
     def moments(self):
         c0, c1 = np.mgrid[:self.data.shape[0], :self.data.shape[1]]  # A trick in numPy to create a mesh grid
@@ -101,7 +121,7 @@ class Image(object):
                         continue
                 else:
                     continue
-        self.circles = count ** 2
+        self.circles = count 
 
 
     def createLines(self):
@@ -306,50 +326,51 @@ class Image(object):
 
 
     def getCorners(self):
-        self.findCorners(self.data, 4, 0.05, 0.5)
+        corners, scores = fast12.detect(self.data, 0.10)
+        self.numCorners = len(corners)
     
-    def findCorners(self, arry, window_size, k, thresh):
-        height = len(arry)
-        width = len(arry[0])
-
-        dy, dx = np.gradient(arry)
-        Ixx = dx ** 2
-        Ixy = dy * dx
-        Iyy = dy ** 2
-
-        cornerList = []
-
-        offset = window_size / 2
-        count = 0
-        last = []
-        count1 = 0
-        going = 1
-
-        newCount = 0
-        goingCount = 0
-
-        for y in range(offset, height - offset):
-            for x in range(offset, width - offset):
-
-                windowIxx = Ixx[y - offset:y + offset + 1, x - offset:x + offset + 1]
-                windowIxy = Ixy[y - offset:y + offset + 1, x - offset:x + offset + 1]
-                windowIyy = Iyy[y - offset:y + offset + 1, x - offset:x + offset + 1]
-                Sxx = windowIxx.sum()
-                Sxy = windowIxy.sum()
-                Syy = windowIyy.sum()
-
-                # Find determinant and trace, use to get corner response
-                det = (Sxx * Syy) - (Sxy ** 2)
-                trace = Sxx + Syy
-                r = det - k * (trace ** 2)
-
-                # If corner response is over threshold, color the point and add to corner list
-                if r > thresh:
-                    # print x, y, r
-                    cornerList.append([y, x, r])
-                    cornerList = self.combineList(cornerList)
-                    newCount += 1
-        self.corners = len(cornerList)
+#     def findCorners(self, arry, window_size, k, thresh):
+#         height = len(arry)
+#         width = len(arry[0])
+# 
+#         dy, dx = np.gradient(arry)
+#         Ixx = dx ** 2
+#         Ixy = dy * dx
+#         Iyy = dy ** 2
+# 
+#         cornerList = []
+# 
+#         offset = window_size / 2
+#         count = 0
+#         last = []
+#         count1 = 0
+#         going = 1
+# 
+#         newCount = 0
+#         goingCount = 0
+# 
+#         for y in range(offset, height - offset):
+#             for x in range(offset, width - offset):
+# 
+#                 windowIxx = Ixx[y - offset:y + offset + 1, x - offset:x + offset + 1]
+#                 windowIxy = Ixy[y - offset:y + offset + 1, x - offset:x + offset + 1]
+#                 windowIyy = Iyy[y - offset:y + offset + 1, x - offset:x + offset + 1]
+#                 Sxx = windowIxx.sum()
+#                 Sxy = windowIxy.sum()
+#                 Syy = windowIyy.sum()
+# 
+#                 # Find determinant and trace, use to get corner response
+#                 det = (Sxx * Syy) - (Sxy ** 2)
+#                 trace = Sxx + Syy
+#                 r = det - k * (trace ** 2)
+# 
+#                 # If corner response is over threshold, color the point and add to corner list
+#                 if r > thresh:
+#                     # print x, y, r
+#                     cornerList.append([y, x, r])
+#                     cornerList = self.combineList(cornerList)
+#                     newCount += 1
+#         self.corners = len(cornerList)
 
 
 
@@ -394,7 +415,7 @@ class Image(object):
             self.backgroundPixels, self.foregroundPixels = ones, zeros
         else:
             self.backgroundPixels, self.foregroundPixels = zeros, ones
-
+        self.ratioPixels = int((100.0 * self.foregroundPixels) / (self.width * self.height))
         #self.foregroundPixels = self.foregroundPixels**2
 
     def encodeValues(self, vals):

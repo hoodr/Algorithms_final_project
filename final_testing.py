@@ -33,29 +33,26 @@ def getFeatures(imgpath):
     # print ('\n' + imgpath)
     #print "Getting Feature \n"
     main = Image(np.loadtxt(imgpath), imgpath)
-    #main.denoise()
+    main.denoise()
     #main.findMajorAxis()
     main.deskew()
+    main.getPCA()
     main.search()  # bounding box
-    main.createLines()
+    #main.createLines()
     main.setCounts()
     main.getSymmetry()
     main.getCorners()
+    #main.getCorners()
     main.getCircledPixels()
     f = main.makeFeatureVector()
-    #paths.append(paths)
-    #vectors.append(np.ravel(f))
-    
-    # print('\n' + imgpath)
-    # print(f)
     return f  
 
 # EXAMPLE RUN FORMAT:
 # Reede$ python testing123.py /Users/Reede/Desktop/test/database /Users/Reede/Desktop/test/queries /Users/Reede/Desktop/test/output 3
 # python /Users/daniellenash/Desktop/algorithms-final-project/testing123/py /Users/daniellenash/Desktop/test/database /Users/daniellenash/Desktop/test/queries /Users/daniellenash/Desktop/test/output 4
 # python testing123.py /Users/hoodr/Desktop/algorithms-final-project/database /Users/hoodr/Desktop/algorithms-final-project/query /Users/hoodr/Desktop/algorithms-final-project/output 1
-# 
-# 
+
+
 if __name__ == '__main__':
     """"
     cmd line args:
@@ -80,7 +77,7 @@ if __name__ == '__main__':
     database_map = {}
     f = []
         
-    lsh = LSHash(6, 4)
+    lsh = LSHash(6, 6)
 
     # database calculations...
     for img in os.listdir(db):
@@ -96,11 +93,10 @@ if __name__ == '__main__':
     query_map = {}
     for img in os.listdir(query):
         #imgpath = query + '/' + img
-        imgpath = "/Users/daniellenash/Downloads/test2/query/26182612"
+        imgpath = "/Users/daniellenash/Downloads/database/65170727"
         print imgpath
         q = getFeatures(imgpath)
         #query_map[q] = imgpath
-        print "\nQUERYING\n"
         answer = lsh.query(q, 5)
         break
         #imgPaths_qu.append(imgpath)
