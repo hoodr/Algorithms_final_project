@@ -35,7 +35,7 @@ class Image(object):
 
     def makeFeatureVector(self):
         # make feature vector for KNN
-        return (self.horizSym, self.vertSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles)
+        return [self.horizSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles, self.corners ** 2]
         #return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width))
 
     def moments(self):
