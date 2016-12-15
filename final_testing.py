@@ -38,6 +38,7 @@ def getFeatures(imgpath):
     main.setCounts()
     main.getSymmetry()
     main.getCorners()
+    main.getCircledPixels()
     f = main.makeFeatureVector()
     #paths.append(paths)
     #vectors.append(np.ravel(f))

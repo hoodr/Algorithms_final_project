@@ -21,7 +21,10 @@ class Image(object):
         self.horizSym = None
         self.vertSym = None
         self.corners = None
+        self.longestLine = None
+        self.secondHighest = None
 
+        self.circles = None
         self.longestLine = None
         self.secondHighest = None
 
@@ -31,12 +34,12 @@ class Image(object):
 
     def makeFeatureVector(self):
         # make feature vector for KNN
-        return (self.corners**2, self.horizSym, self.vertSym, (10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels), (10.0 * self.height)/self.width, self.longestLine)
+        return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width), self.longestLine)
 
 
     def checkHoriz(self, h, w):
-        pixel = self.bounded[h][w]
-        row = self.bounded[h]
+        pixel = self.data[h][w]
+        row = self.data[h]
         pos = w
         pre = row[:pos]
         post = row[pos:]
@@ -47,8 +50,8 @@ class Image(object):
 
 
     def checkVert(self, h, w, height):
-        pixel = self.bounded[h][w]
-        col = [self.bounded[i][w] for i in range(height)]
+        pixel = self.data[h][w]
+        col = [self.data[i][w] for i in range(height)]
         pos = h
         pre = col[:pos]
         post = col[pos:]
@@ -60,11 +63,11 @@ class Image(object):
 
     def getCircledPixels(self):
         count = 0
-        height = len(self.bounded)
-        width = len(self.bounded[0])
+        height = len(self.data)
+        width = len(self.data[0])
         for row in range(height):
             for col in range(width):
-                pixel = self.bounded[row][col]
+                pixel = self.data[row][col]
                 if self.checkHoriz(row, col):
                     if self.checkVert(row, col, height):
                         count += 1
@@ -364,6 +367,7 @@ class Image(object):
         else:
             self.backgroundPixels, self.foregroundPixels = zeros, ones
 
+        self.foregroundPixels = self.foregroundPixels**2
 
     def encodeValues(self, vals):
         """"
