@@ -21,12 +21,15 @@ class Image(object):
         self.horizSym = None
         self.vertSym = None
         self.corners = None
-<<<<<<< HEAD
         self.longestLine = None
         self.secondHighest = None
-=======
+
         self.circles = None
->>>>>>> master
+        self.longestLine = None
+        self.secondHighest = None
+
+        self.circles = None
+
         # self.isPolygon = self.getType()  # TODO set from corners method
 
     def makeFeatureVector(self):
