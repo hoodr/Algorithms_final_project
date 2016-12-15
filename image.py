@@ -8,6 +8,7 @@ from scipy import ndimage
 import random
 import pdb
 import math
+from scipy.ndimage import interpolation
 
 class Image(object):
     def __init__(self, data, name): # data is an np.array
@@ -35,6 +36,26 @@ class Image(object):
     def makeFeatureVector(self):
         # make feature vector for KNN
         return (self.circles, self.corners, self.horizSym, self.vertSym, ((10.0 * self.foregroundPixels) / (self.foregroundPixels + self.backgroundPixels)), ((100.0 * self.height)/self.width), self.longestLine)
+
+    def moments(self):
+        c0, c1 = np.mgrid[:self.data.shape[0], :self.data.shape[1]]  # A trick in numPy to create a mesh grid
+        totalImage = np.sum(self.data)  # sum of pixels
+        m0 = np.sum(c0 * self.data) / totalImage  # mu_x
+        m1 = np.sum(c1 * self.data) / totalImage  # mu_y
+        m00 = np.sum((c0 - m0) ** 2 * self.data) / totalImage  # var(x)
+        m11 = np.sum((c1 - m1) ** 2 * self.data) / totalImage  # var(y)
+        m01 = np.sum((c0 - m0) * (c1 - m1) * self.data) / totalImage  # covariance(x,y)
+        mu_vector = np.array([m0, m1])  # Notice that these are \mu_x, \mu_y respectively
+        covariance_matrix = np.array([[m00, m01], [m01, m11]])  # Do you see a similarity between the covariance matrix
+        return mu_vector, covariance_matrix
+
+    def deskew(self):
+        c, v = self.moments()
+        alpha = v[0, 1] / v[0, 0]
+        affine = np.array([[1, 0], [alpha, 1]])
+        ocenter = np.array(self.data.shape) / 2.0
+        offset = c - np.dot(affine, ocenter)
+        self.data = interpolation.affine_transform(self.data, affine, offset=offset)
 
 
     def checkHoriz(self, h, w):
@@ -177,7 +198,7 @@ class Image(object):
         else:
             m = (-1.0) * (coord[1][1] - coord[0][1]) / (coord[1][0] - coord[0][0])
             degs = math.degrees(math.atan(m))
-            print "rot"
+            #print ("rot")
             self.rotate(degs)            
 
     def rotate(self, degrees):
@@ -278,7 +299,7 @@ class Image(object):
 
 
     def getCorners(self):
-    	self.findCorners(self.data, 4, 0.05, 0.5)
+        self.findCorners(self.data, 4, 0.05, 0.5)
     
     def findCorners(self, arry, window_size, k, thresh):
         height = len(arry)
