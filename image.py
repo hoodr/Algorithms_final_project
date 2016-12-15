@@ -36,7 +36,7 @@ class Image(object):
         self.circles = None
         self.longestLine = None
         self.secondHighest = None
-
+        self.centroid = None
         self.circles = None
 
         # self.isPolygon = self.getType()  # TODO set from corners method
@@ -44,7 +44,8 @@ class Image(object):
     def makeFeatureVector(self):
         # make feature vector for KNN   #, self.ratioPixels   self.horizSym ** 2, self.vertSym ** 2,
         # GOOD: return [self.numCorners,  self.foregroundPixels , self.horizSym, self.vertSym, self.pca1]
-        return [self.numCorners,  self.ratioPixels , self.horizSym, self.vertSym, self.pca1, self.pca2]
+        # PRETTY GOOD TOO: return [self.numCorners,  self.ratioPixels , self.horizSym, self.vertSym, self.pca1, self.pca2]
+        return [self.numCorners,  self.ratioPixels , self.horizSym, self.vertSym, self.pca1, self.pca2, self.centroid[0], self.centroid[1]]
         
         #return [self.numCorners ** 2, self.horizSym ** 2, self.vertSym ** 2, self.foregroundPixels ** 2, self.circles ** 2, self.pca1, self.pca2]
         #return [self.horizSym, ((100.0 * self.foregroundPixels) / (self.width * self.height)), self.circles, self.corners ** 2]
@@ -328,7 +329,17 @@ class Image(object):
     def getCorners(self):
         corners, scores = fast12.detect(self.data, 0.10)
         self.numCorners = len(corners)
-    
+        corners = np.asarray([list(x) for x in corners])
+        length = corners.shape[0]
+        if length > 0:
+            sum_x = corners[:, 0]
+            sum_y = corners[:, 1]
+            self.centroid = (sum(sum_x)/length, sum(sum_y)/length)
+            return
+        else:
+            self.centroid = (0, 0)
+            return
+            
 #     def findCorners(self, arry, window_size, k, thresh):
 #         height = len(arry)
 #         width = len(arry[0])

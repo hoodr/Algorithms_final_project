@@ -77,7 +77,7 @@ if __name__ == '__main__':
     database_map = {}
     f = []
         
-    lsh = LSHash(6, 6)
+    lsh = LSHash(6, 8)
 
     # database calculations...
     for img in os.listdir(db):
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     query_map = {}
     for img in os.listdir(query):
         #imgpath = query + '/' + img
-        imgpath = "/Users/daniellenash/Downloads/database/65170727"
+        imgpath = "/Users/daniellenash/Downloads/database/642073386"
         print imgpath
         q = getFeatures(imgpath)
         #query_map[q] = imgpath
