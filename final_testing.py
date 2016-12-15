@@ -30,14 +30,16 @@ import time
 
 def getFeatures(imgpath):
     # print ('\n' + imgpath)
+    #print "Getting Feature \n"
     main = Image(np.loadtxt(imgpath), imgpath)
-    main.denoise()
+    #main.denoise()
     #main.findMajorAxis()
+    main.deskew()
     main.search()  # bounding box
     main.createLines()
     main.setCounts()
     main.getSymmetry()
-    main.getCorners()
+    #main.getCorners()
     main.getCircledPixels()
     f = main.makeFeatureVector()
     #paths.append(paths)
@@ -69,7 +71,7 @@ if __name__ == '__main__':
     output_path = cmdline_args[3]
     k = cmdline_args[4]
     
-    imgPaths = []
+    imgPaths_qu = []
     imgPath_db = []
     query_vectors = []
     db_vectors = []
@@ -92,7 +94,7 @@ if __name__ == '__main__':
         imgpath = query + '/' + img
         q = getFeatures(imgpath)
         database_map[imgpath] = q
-        imgPaths.append(imgpath)
+        imgPaths_qu.append(imgpath)
         query_vectors.append(q)
         #for i in range(len(q)):
             #vectors.append(q[i])
@@ -107,7 +109,7 @@ if __name__ == '__main__':
     # tree = spatial.KDTree(vectors)
     tree = KDTree(db_vectors)
     for v in range(len(query_vectors)):
-        print 'Query Image: {}'.format(imgPaths[v])
+        print 'Query Image: {}'.format(imgPaths_qu[v])
         print 'Query vector: {} \n'.format(query_vectors[v])
         distance, ind = tree.query(query_vectors[v], int(k))    
         for i in ind:
