@@ -4,16 +4,11 @@ Image object class for an image w/ methods
 12/08/16
 """
 import numpy as np
-from scipy import ndimage
 import random
-import pdb
 import math
 import fast12
 from scipy.ndimage import interpolation
-from scipy.ndimage.interpolation import map_coordinates
-from sklearn.decomposition import PCA as sklearnPCA
 from sklearn.preprocessing import StandardScaler
-
 
 
 class Image(object):
