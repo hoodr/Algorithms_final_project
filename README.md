@@ -3,7 +3,8 @@ Final Project for CSCI 3383 Algorithms by:
 
 [Danielle Nash](https://github.com/nashdb) [Ryan Reede](https://github.com/reedery) [Drew Hoo](https://github.com/hoodr)
 
-Included in this repo is our final code, along with the instructions for the project, and our final paper.
+#### Included in this repo is our final code, along with the [instructions](https://github.com/hoodr/Algorithms_final_project/blob/master/FinalProjectAlg20162017_new.pdf) for the project, and our [final paper](https://github.com/hoodr/Algorithms_final_project/blob/master/Final%20Report.pdf).
+(unfortunately you'll have to download the pdfs)
 
 ### Instructions for running:
 1. Clone the repo locally
