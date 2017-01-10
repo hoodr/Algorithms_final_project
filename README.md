@@ -1,8 +1,7 @@
 # CSCI 3383 Algorithms (final project)
 Final Project for CSCI 3383 Algorithms by:
-@nashdb @reedery @hoodr
 
-<!-- [Danielle Nash](https://github.com/nashdb) [Ryan Reede](https://github.com/reedery) [Drew Hoo](https://github.com/hoodr) -->
+[Danielle Nash](https://github.com/nashdb) [Ryan Reede](https://github.com/reedery) [Drew Hoo](https://github.com/hoodr)
 
 Included in this repo is our final code, along with the instructions for the project, and our final paper.
 
@@ -11,11 +10,11 @@ Included in this repo is our final code, along with the instructions for the pro
     * Note: We used a linux terminal to run our executables. The normal way to run in terminal will be below the exe instructions
 2. ``` cd Algorithms_final_project ```
 3. To run our program:
-    * ``` ./final_project_exec ./Test1/database/ ./Test1/queries/ ./Test1/output/this_is_the_output 5 ```
+    * ``` ./final_project_final ./Test1/database/ ./Test1/queries/ ./Test1/output/this_is_the_output 5 ```
     * Template: path/to/exe path/to/Test/database path/to/test/queries path/to/output k
         * Where K is the number of similar images you want the program to match to each input query
 4. Check the results:
-    * ``` ./test_solution_exec ./Test1/output/database_decode_key ./Test1/output/queries_decode_key ./Test1/output/this_is_the_output 5 ./Test1/output/performance_file ```
+    * ``` ./check_results_exec ./Test1/output/database_decode_key ./Test1/output/queries_decode_key ./Test1/output/this_is_the_output 5 ./Test1/output/performance_file ```
     * Template: path/to/solution/exe path/to/Test/output/decode_key path/to/output/decode_queries path/to/output k path/to/output/performance_file
         * Where K is the number of similar images you want the program to match to each input query
 5. If you don't feel like using the executable, just run ``` python final_project_final.py ./Test1/database/ ./Test1/queries/ ./Test1/output/this_is_the_output 5 ```
